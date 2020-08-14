@@ -15,11 +15,11 @@ def main():
 
     # check That SCA is ready
     scaReady = parseInt(readReg(getNode('GEM_AMC.SLOW_CONTROL.SCA.STATUS.READY')))
-    
+
     if scaReady == 1:
         PASS = check_fpga_load_paths()
     else :
-        print("FAIL: SCA not Ready, GBT1 -> FPGA loading path not tested!")
+        print("FAIL: SCA not Ready, GBT1 -> FPGA loading path not tested!!!")
         PASS = False
 
     word = ''

@@ -49,7 +49,7 @@ def main():
     else:
         print('Integrated test of Internal Links : FAILED')
 
-        
+
 
 
     # take CTP7 out of loopback testing mode
@@ -60,15 +60,15 @@ def main():
     #writeReg(getNode('GEM_AMC.GEM_SYSTEM.CTRL.LINK_RESET'), 1)
 
     #Example of reading a register
-    #result = parseInt(readReg(getNode('GEM_AMC.OH_LINKS.OH0.GBT0_READY'))) 
+    #result = parseInt(readReg(getNode('GEM_AMC.OH_LINKS.OH0.GBT0_READY')))
     #print("OH0 GBT0 ready = %d" % result)
 
 
 def check_loopback_regs():
     #outputs lowest number of mega_word_count for all e-links under test
     # outputs: -1 if an e-link is not locked & prints status to command line
-    # outputs: -2 if an error count is non-zero 
-    
+    # outputs: -2 if an error count is non-zero
+
     # take CTP7 out of loopback testing mode
     writeReg(getNode('GEM_AMC.GEM_SYSTEM.TESTS.GBT_LOOPBACK_EN'), 0)
 
@@ -85,10 +85,10 @@ def check_loopback_regs():
             megaCount = -2
         if parseInt(readReg(getNode(head+eLink+'.MEGA_WORD_CNT'))) != megaCount:
             print('FAIL: '+eLink+' mega Word Count incosistent')
-    
+
     # Put CTP7 into loopback testing mode
     writeReg(getNode('GEM_AMC.GEM_SYSTEM.TESTS.GBT_LOOPBACK_EN'), 1)
-   
+
     return megaCount
 
 

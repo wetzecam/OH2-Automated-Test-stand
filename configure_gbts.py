@@ -2,7 +2,8 @@
 
 # This is a modified version of the file
 #	~/apps/reg_interface/sgbt_ge21_map_config.py
-
+import sys
+sys.path.insert(1, '/mnt/persistent/texas/apps/reg_interface')
 from rw_reg import *
 from time import *
 import array
@@ -41,6 +42,7 @@ GE21_GBT_ELINK_TO_VFAT = [GE21_GBT0_ELINK_TO_VFAT, GE21_GBT1_ELINK_TO_VFAT]
 GBT_ELINK_SAMPLE_PHASE_REGS = [[69, 73, 77], [67, 71, 75], [93, 97, 101], [91, 95, 99], [117, 121, 125], [115, 119, 123], [141, 145, 149], [139, 143, 147], [165, 169, 173], [163, 167, 171]]
 
 def main():
+    parseXML()
     gbt_config(0, 0, 'config', '/mnt/persistent/texas/gbt_config/GBTX_GE21_OHv2_GBT_0_minimal_2020-01-17.txt')
     gbt_config(0, 1, 'config', '/mnt/persistent/texas/gbt_config/GBTX_GE21_OHv2_GBT_1_minimal_2020-01-31.txt')
 

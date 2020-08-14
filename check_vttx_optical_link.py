@@ -36,7 +36,7 @@ def main():
 def check_vttx_link():
     #returns true if test passes
     passFail = True
-    
+
     link0_missed = parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK0_MISSED_COMMA_CNT')))
     link1_missed = parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK1_MISSED_COMMA_CNT')))
     link0_overflow = parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK0_OVERFLOW_CNT')))
@@ -46,7 +46,7 @@ def check_vttx_link():
 
     # wait a few seconds to ensure no increment
     sleep(3)
-    
+
     cntChange = link0_missed - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK0_MISSED_COMMA_CNT')))
     if cntChange != 0:
         print('FAIL: GEM_AMC.TRIGGER.OH0.LINK0_MISSED_COMMA_CNT incremented by, %d' % cntChange)
@@ -76,22 +76,7 @@ def check_vttx_link():
     if cntChange != 0:
         print('FAIL: GEM_AMC.TRIGGER.OH0.LINK1_UNDERFLOW_CNT incremented by, %d' % cntChange)
         passFail = False
-    
-    # possibly unnecessary repeat to ensure no incrementing
-    sleep(3)
-    
-    if (link0_missed - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK0_MISSED_COMMA_CNT')))) != 0:
-        passFail = False
-    if (link1_missed - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK1_MISSED_COMMA_CNT')))) != 0:
-        passFail = False
-    if (link0_overflow - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK0_OVERFLOW_CNT')))) != 0:
-        passFail = False
-    if (link1_overflow - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK1_OVERFLOW_CNT')))) != 0:
-        passFail = False
-    if (link0_underflow - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK0_UNDERFLOW_CNT')))) != 0:
-        passFail = False
-    if (link1_underflow - parseInt(readReg(getNode('GEM_AMC.TRIGGER.OH0.LINK1_UNDERFLOW_CNT')))) != 0:
-        passFail = False
+
 
     print('readKW GEM_AMC.TRIGGER.OH0')
     readKW('GEM_AMC.TRIGGER.OH0') # prints status for log file

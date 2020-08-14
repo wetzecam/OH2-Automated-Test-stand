@@ -22,7 +22,7 @@ then
 		echo "Do you wish to proceed with further Tets? (y/n):"
 		read userIn
 		if [ "$userIn" == "y" ] || [ "$userIn" == "Y" ]
-		then 
+		then
 			echo "Yes selected"
 			break
 		elif [ $userIn == "n" ] || [ $userIn == "N" ]
@@ -45,7 +45,7 @@ else
 	if test -f "${OH_TEST_LOGFILE}"
 	then
 		echo -e "${RED}ERROR:${NC} Log File ${CYAN}${OH_TEST_LOGFILE}${NC} Already Exists, please enter unique ID and Try again"
-		exit			
+		exit
 	else
 		touch ${OH_TEST_LOGFILE}
 		echo -e "Log file is created: ${CYAN}${OH_TEST_LOGFILE}${NC}"
@@ -57,15 +57,14 @@ echo "Begin RiceOH2_testManual Section 8: Checking communication with CTP7"
 ./ohManual_sect_8.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
-echo "Begin RiceOH2_testManual Section 11.3: Testing of VTTX optical links with CTP7"
-./ohManual_sect_11.sh >> ${OH_TEST_LOGFILE}
-queryContinue
-
 echo "Begin RiceOH2_testManual Section 12: Testing of Load FPGA from GBT1"
 ./ohManual_sect_12.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
-echo "Begin RiceOH2_testManual Section 13: Integrated Test of Internal Links"
-./ohManual_sect_13.sh >> ${OH_TEST_LOGFILE}
+echo "Begin RiceOH2_testManual Section 14: Integrated Test of Internal Links"
+./ohManual_sect_14.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
+echo "Begin RiceOH2_testManual Section 11.3: Testing of VTTX optical links with CTP7"
+./ohManual_sect_11.sh >> ${OH_TEST_LOGFILE}
+queryContinue

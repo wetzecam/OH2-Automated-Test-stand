@@ -38,9 +38,11 @@ def main():
     while noFailCount < acceptCriteria and noFailCount >= 0:
         noFailCount = check_loopback_regs()
         if noFailCount == -1:
+            print('FAIL: an E-LINK is not locked')
             print('Integrated test of Internal Links : FAILED')
             continue
         elif noFailCount == -2:
+            print('FAIL: There is a non-zero error counter')
             print('Integrated test of Internal Links : FAILED')
             continue
 

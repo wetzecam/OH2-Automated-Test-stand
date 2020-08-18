@@ -7,7 +7,7 @@
 cd ~/tamu
 # Load the CTP7 firmware
 ./cold_boot_invert_rx.sh
-# Load OH firmware to CTP7 RAM
+# Load OH firmware to CTP7 RAM (PRBS)
 ./gemloader_configure_v2.sh
 # Configure the GBTs (0 and 1)
 

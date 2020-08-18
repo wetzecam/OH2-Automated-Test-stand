@@ -12,8 +12,17 @@ def main():
 
     parseXML()
 
+    # firmware loading
+    writeReg(getNode('GEM_AMC.TTC.GENERATOR.ENABLE'), 1)
+    writeReg(getNode('GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET'), 1)
+
     #reset Trigger Module
     writeReg(getNode('GEM_AMC.TRIGGER.CTRL.MODULE_RESET'), 1)
+    writeReg(getNode('GEM_AMC.GEM_SYSTEM.CTRL.LINK_RESET'), 1)
+
+    # Reset counters before reading
+    writeReg(getNode('GEM_AMC.TRIGGER.CTRL.CNT_RESET'), 1)
+
 
     PASS = check_vttx_link()
 

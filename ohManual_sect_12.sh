@@ -1,3 +1,3 @@
 #!/bin/sh
 
-python check_gbt1_fpga_load.py 1 1000
+python check_gbt1_fpga_load.py 1 10 #1000

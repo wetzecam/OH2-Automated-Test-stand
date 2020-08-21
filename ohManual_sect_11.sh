@@ -1,7 +1,5 @@
 #!/bin/sh
 
-cd /mnt/persistent/texas/tamu/
-./gemloader_configure_v2_full.sh
-
-cd ~/oh_testing/
+cd /mnt/persistent/texas/oh_testing/
+./program_full_fw.sh
 python check_vttx_optical_link.py

@@ -83,7 +83,7 @@ def check_loopback_regs():
             print('FAIL: '+eLink+' PRBS Not Locked!')
             megaCount = -1
         if parseInt(readReg(getNode(head+eLink+'.ERROR_CNT'))) > 0:
-            print('FAIL: '+eLink+' Has non-zero error count = %d' % parseInt(readReg(getNode(head+eLink+'.PRBS_LOCKED'))))
+            print('FAIL: '+eLink+' Has non-zero error count = %d' % parseInt(readReg(getNode(head+eLink+'.ERROR_CNT'))))
             megaCount = -2
         if parseInt(readReg(getNode(head+eLink+'.MEGA_WORD_CNT'))) != megaCount:
             print('FAIL: '+eLink+' mega Word Count incosistent')

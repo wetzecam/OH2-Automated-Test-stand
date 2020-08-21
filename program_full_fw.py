@@ -20,9 +20,6 @@ def main():
     writeReg(getNode('GEM_AMC.TRIGGER.CTRL.CNT_RESET'), 1)
     # verify error counters are 0 or low value, not increment
     readKW('GEM_AMC.TRIGGER.OH0')
-    print('Wait 3 sec...')
-    sleep(3)
-    readKW('GEM_AMC.TRIGGER.OH0')
 
 
 

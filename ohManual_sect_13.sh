@@ -1,4 +1,4 @@
 #!/bin/sh
 
 
-python eLink_PRBS_loopback_test.py
+python sca.py 1 adc-read

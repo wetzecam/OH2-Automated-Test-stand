@@ -13,17 +13,26 @@ def main():
     parseXML()
 
     # firmware loading
+#    writeReg(getNode('GEM_AMC.TTC.GENERATOR.ENABLE'), 1)
+#    writeReg(getNode('GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET'), 1)
+
+    #reset Trigger Module
+#    writeReg(getNode('GEM_AMC.TRIGGER.CTRL.MODULE_RESET'), 1) # This step is in Manual but I think it is wrong or causes issue
+#    writeReg(getNode('GEM_AMC.GEM_SYSTEM.CTRL.LINK_RESET'), 1)
+
+    # Reset counters before reading
+#    writeReg(getNode('GEM_AMC.TRIGGER.CTRL.CNT_RESET'), 1)
+
     writeReg(getNode('GEM_AMC.TTC.GENERATOR.ENABLE'), 1)
     writeReg(getNode('GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET'), 1)
 
-    #reset Trigger Module
-    writeReg(getNode('GEM_AMC.TRIGGER.CTRL.MODULE_RESET'), 1)
-    writeReg(getNode('GEM_AMC.GEM_SYSTEM.CTRL.LINK_RESET'), 1)
+    readKW('RELEASE') # MODIFY THIS TO CHECK FW is GOOD!!!!!!
 
-    # Reset counters before reading
+    writeReg(getNode('GEM_AMC.GEM_SYSTEM.CTRL.LINK_RESET'), 1)
+    sleep(1)
     writeReg(getNode('GEM_AMC.TRIGGER.CTRL.CNT_RESET'), 1)
 
-
+    # verify error counters are 0 or low value, not increment
     PASS = check_vttx_link()
 
     word = ''

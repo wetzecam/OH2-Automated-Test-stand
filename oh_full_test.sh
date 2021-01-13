@@ -61,16 +61,12 @@ echo "Begin RiceOH2_testManual Section 12: Testing of Load FPGA from GBT1"
 ./ohManual_sect_12.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
+echo "Begin RiceOH2_testManual Section 11.3: Testing of VTTX optical links with CTP7"                    
+./ohManual_sect_11.sh >> ${OH_TEST_LOGFILE}                                                              
+queryContinue 
+
 echo "Begin RiceOH2_testManual Section 14: Integrated Test of Internal Links"
 ./ohManual_sect_14.sh >> ${OH_TEST_LOGFILE}
-queryContinue
-
-echo "Begin RiceOH2_testManual Section 11.3: Testing of VTTX optical links with CTP7"
-./ohManual_sect_11.sh >> ${OH_TEST_LOGFILE}
-queryContinue
-
-echo "Begin RiceOH2_testManual Section 13: Read ADCs from SCA ASIC"
-./ohManual_sect_13.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
 echo "Begin RiceOH2_testManual Section 15: Integrated Test of VFAT Interface"

@@ -34,6 +34,9 @@ def main():
     # Put CTP7 into loopback testing mode
     writeReg(getNode('GEM_AMC.GEM_SYSTEM.TESTS.GBT_LOOPBACK_EN'), 1)
 
+    # reset loopback counters
+    # writeReg(getNode('GEM_AMC.GEM_TESTS.OH_LOOPBACK.CTRL.RESET'), 1)
+
     noFailCount = 0
     while noFailCount < acceptCriteria and noFailCount >= 0:
         noFailCount = check_loopback_regs()

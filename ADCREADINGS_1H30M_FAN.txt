@@ -1,0 +1,38 @@
+Loading shared library: /mnt/persistent/texas/shared_libs/librwreg.so
+Parsing /mnt/persistent/texas/gem_amc_top.xml ...
+[94m
+
+>>>>>>> HOLA, I'M SCA CONTROLLER TESTER :) <<<<<<<
+[0m
+Channel 0 OH 0: 1020 counts (0x3fc) = 249.084249mV
+Channel 1 OH 0: 1028 counts (0x404) = 251.037851mV
+Channel 2 OH 0: 1224 counts (0x4c8) = 298.901099mV
+Channel 3 OH 0: 1906 counts (0x772) = 465.445665mV
+Channel 4 OH 0: 1564 counts (0x61c) = 381.929182mV
+Channel 5 OH 0: 2516 counts (0x9d4) = 614.407814mV
+Channel 6 OH 0: 2321 counts (0x911) = 566.788767mV
+Channel 7 OH 0: 2556 counts (0x9fc) = 624.175824mV
+Channel 8 OH 0: 243 counts (0xf3) = 59.340659mV
+Channel 9 OH 0: 335 counts (0x14f) = 81.807082mV
+Channel 10 OH 0: 128 counts (0x80) = 31.257631mV
+Channel 11 OH 0: 108 counts (0x6c) = 26.373626mV
+Channel 12 OH 0: 206 counts (0xce) = 50.305250mV
+Channel 13 OH 0: 441 counts (0x1b9) = 107.692308mV
+Channel 14 OH 0: 441 counts (0x1b9) = 107.692308mV
+Channel 15 OH 0: 440 counts (0x1b8) = 107.448107mV
+Channel 16 OH 0: 440 counts (0x1b8) = 107.448107mV
+Channel 17 OH 0: 397 counts (0x18d) = 96.947497mV
+Channel 18 OH 0: 2158 counts (0x86e) = 526.984127mV
+Channel 19 OH 0: 2105 counts (0x839) = 514.041514mV
+Channel 20 OH 0: 1872 counts (0x750) = 457.142857mV
+Channel 21 OH 0: 2054 counts (0x806) = 501.587302mV
+Channel 22 OH 0: 2210 counts (0x8a2) = 539.682540mV
+Channel 23 OH 0: 2270 counts (0x8de) = 554.334554mV
+Channel 24 OH 0: 2081 counts (0x821) = 508.180708mV
+Channel 25 OH 0: 2363 counts (0x93b) = 577.045177mV
+Channel 26 OH 0: 1995 counts (0x7cb) = 487.179487mV
+Channel 27 OH 0: 1840 counts (0x730) = 449.328449mV
+Channel 28 OH 0: 2076 counts (0x81c) = 506.959707mV
+Channel 29 OH 0: 2237 counts (0x8bd) = 546.275946mV
+Channel 30 OH 0: 1906 counts (0x772) = 465.445665mV
+Channel 31 OH 0: 2709 counts (0xa95) = 661.538462mV

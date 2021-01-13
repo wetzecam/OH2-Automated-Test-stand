@@ -11,9 +11,11 @@
 #./gemloader_configure_v2.sh
 # Configure the GBTs (0 and 1)
 
-cd /mnt/persistent/texas/tamu/
+cd ~/tamu/
 ./cold_boot_invert_rx.sh
+
 cd /mnt/persistent/texas/oh_testing/
+
 python configure_gbts.py
 python check_ctp7_comm.py
 ./program_full_fw.sh

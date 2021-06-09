@@ -6,7 +6,7 @@ from time import *
 import array
 import struct
 import signal
-import sys
+import math
 
 DEBUG=False
 
@@ -49,6 +49,8 @@ PHASE_SCAN_NUM_SLOW_CONTROL_READS = 10000
 GBT0_Config_File = "gbt_config/GBTX_GE21_OHv2_GBT_0_minimal_2020-01-17.txt"
 GBT1_Config_File = "gbt_config/GBTX_GE21_OHv2_GBT_1_minimal_2020-01-31.txt"
 
+minWindowWidth = 5
+
 def main():
     ohSelect = 0
     gbtSelect = 0
@@ -58,12 +60,251 @@ def main():
 
     initGbtRegAddrs()
 
-    scan_vfats(0,0,GBT0_Config_File)
-    scan_vfats(0,1,GBT1_Config_File)
-    ## ADD VFAT phase Picking / Programming HERE!!!!
+    Gbt_0_PhaseRes = scan_vfats(0,0,GBT0_Config_File)
+    Gbt_1_PhaseRes = scan_vfats(0,1,GBT1_Config_File)
 
+    print(Gbt_0_PhaseRes)
+    print(Gbt_1_PhaseRes)
+
+    ## ADD VFAT phase Picking / Programming HERE!!!!
+    PhaseArray_Gbt_0 = []
+    PhaseArray_Gbt_1 = []
+
+    WindowSpecs_Gbt_0 = [[-1] * 2 for x in range(len(Gbt_0_PhaseRes))]
+    print(WindowSpecs_Gbt_0)
+    i=0
+    for Arr in Gbt_0_PhaseRes:
+        #print('')
+        #print('Status[',i,'][  ]:')
+        WindowSpecs_Gbt_0[i] = findBestWindow(Arr)
+        i+=1
+    print(WindowSpecs_Gbt_0)
+    #print(WindowSpecs_Gbt_0[0])
+    #print(WindowSpecs_Gbt_0[:][0])
+
+    WindowSpecs_Gbt_1 = [[-1] * 2 for x in range(len(Gbt_1_PhaseRes))]
+    print(WindowSpecs_Gbt_1)
+    i=0
+    for Arr in Gbt_1_PhaseRes:
+        #print('')
+        #print('Status[',i,'][  ]:')
+        WindowSpecs_Gbt_1[i] = findBestWindow(Arr)
+        i+=1
+    print(WindowSpecs_Gbt_1)
+
+    iter = 0
+    for width , phi in WindowSpecs_Gbt_0:
+        if width < minWindowWidth:
+            print "Fail: Gbt%d Elink%d has No Acceptable phase Window" % 0,iter
+            PhaseArray_Gbt_0.append(0)
+        else:
+            PhaseArray_Gbt_0.append(int(phi))
+        iter += 1
+    iter = 0
+    for width , phi in WindowSpecs_Gbt_1:
+        if width < minWindowWidth:
+            print "Fail: Gbt%d Elink%d has No Acceptable phase Window" % 1,iter
+            PhaseArray_Gbt_1.append(0)
+        else:
+            PhaseArray_Gbt_1.append(int(phi))
+        iter += 1
+
+    program_phase(0,0,GBT0_Config_File,PhaseArray_Gbt_0)
+    program_phase(0,1,GBT1_Config_File,PhaseArray_Gbt_1)
+
+
+def program_phase(ohSelect , gbtSelect , configFile , Phases):
+
+    heading("Hello, I'm you GBT controller :)")
+
+    if(checkGbtReady(ohSelect,gbtSelect) == 1):
+        selectGbt(ohSelect,gbtSelect)
+    else:
+        printRed("Sorry, OH%d GBT%d link is not ready.. check the following your OH is on, the fibers are plugged in correctly, the CTP7 TX polarity is correct, and muy importante, check that your GBTX is fused with at least the minimal config.." % (ohSelect, gbtSelect))
+        return
+
+    subheading('Configuring OH%d GBT%d' % (ohSelect, gbtSelect))
+
+    if configFile[-3:] != "txt":
+        printRed("Seems like the file is not a txt file, please provide a txt file generated with the GBT programmer software")
+        return
+    if not os.path.isfile(configFile):
+        printRed("Can't find the file %s" % configFile)
+        return
+
+    timeStart = clock()
+
+    regs = downloadConfig(ohSelect, gbtSelect, configFile)
+
+    totalTime = clock() - timeStart
+    print('time took = ' + str(totalTime) + 's')
+    # prep
+    writeReg(getNode('GEM_AMC.GEM_TESTS.OH_LOOPBACK.CTRL.OH_SELECT'), ohSelect)
+
+    initVfatRegAddrs()
+
+    for elink in range(len(Phases)):
+        phase = int(Phases[elink])
+        subheading('Setting phase = %d for elink %d' % (phase, elink))
+        for subReg in range(0, 3):
+            addr = GBT_ELINK_SAMPLE_PHASE_REGS[elink][subReg]
+            value = (regs[addr] & 0xf0) + phase
+            wReg(ADDR_IC_ADDR, addr)
+            wReg(ADDR_IC_WRITE_DATA, value)
+            wReg(ADDR_IC_EXEC_WRITE, 1)
+
+        if elink in GE21_GBT_ELINK_TO_VFAT[gbtSelect]:
+            vfat = GE21_GBT_ELINK_TO_VFAT[gbtSelect][elink]
+            # reset the link, give some time to lock and accumulate any sync errors and then check VFAT comms
+            sleep(0.1)
+            writeReg(getNode('GEM_AMC.GEM_SYSTEM.CTRL.LINK_RESET'), 1)
+            sleep(0.001)
+            cfgRunGood = 1
+            cfgAddr = getNode('GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_RUN' % (ohSelect, vfat)).real_address
+            for i in range(10000):
+                #ret = readReg(getNode('GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_RUN' % (ohSelect, vfat)))
+                ret = rReg(cfgAddr)
+                #if (ret != '0x00000000' and ret != '0x00000001'):
+                if (ret != 0 and ret != 1):
+                    print("bad read of CFG_RUN on elink %d VFAT%d, iteration #%d: %s" % (elink, vfat, i, hex(ret)))
+                    cfgRunGood = 0
+                    break
+            #sleep(0.3)
+            #sleep(0.5)
+            linkGood = parseInt(readReg(getNode('GEM_AMC.OH_LINKS.OH%d.VFAT%d.LINK_GOOD' % (ohSelect, vfat))))
+            syncErrCnt = parseInt(readReg(getNode('GEM_AMC.OH_LINKS.OH%d.VFAT%d.SYNC_ERR_CNT' % (ohSelect, vfat))))
+            color = Colors.GREEN
+            prefix = 'COMMUNICATION GOOD on elink %d VFAT%d: ' % (elink, vfat)
+            if (linkGood == 0) or (syncErrCnt > 0) or (cfgRunGood == 0):
+                color = Colors.RED
+                prefix = 'COMMUNICATION BAD on elink %d VFAT%d: ' % (elink, vfat)
+            print color, prefix, 'Phase = %d, LINK_GOOD=%d, SYNC_ERR_CNT=%d, CFG_RUN_GOOD=%d' % (phase, linkGood, syncErrCnt, cfgRunGood), Colors.ENDC
+
+
+
+def program_phase_fpga(Gbt_0_Phase, Gbt_1_Phase):
+    # Default program VFATs to 0's phases...
+    vfatPhases_gbt_0 = [0 , 0 , 0 , 0 , 0 , 0]
+    vfatPhases_gbt_1 = [0 , 0 , 0 , 0 , 0 , 0]
+
+    WindowSpecs_Gbt_0 = [[-1] * 2 for x in range(len(Gbt_0_Phase))]
+    print(WindowSpecs_Gbt_0)
+    i=0
+    for Arr in Gbt_0_Phase:
+        #print('')
+        #print('Status[',i,'][  ]:')
+        WindowSpecs_Gbt_0[i] = findBestWindow(Arr)
+        i+=1
+    print(WindowSpecs_Gbt_0)
+    #print(WindowSpecs_Gbt_0[0])
+    #print(WindowSpecs_Gbt_0[:][0])
+
+    WindowSpecs_Gbt_1 = [[-1] * 2 for x in range(len(Gbt_1_Phase))]
+    print(WindowSpecs_Gbt_1)
+    i=0
+    for Arr in Gbt_1_Phase:
+        #print('')
+        #print('Status[',i,'][  ]:')
+        WindowSpecs_Gbt_1[i] = findBestWindow(Arr)
+        i+=1
+    print(WindowSpecs_Gbt_1)
+    #print(WindowSpecs_Gbt_1[0])
+    #print(WindowSpecs_Gbt_1[:][0])
+
+    # Organize "Best Phases" into Arrays
+    PhaseArray_Gbt_0 = vfatPhases_gbt_0
+    for x , y in WindowSpecs_Gbt_0:
+        #print('X=%d'%x)
+        #print('Y=%d'%y)
+        PhaseArray_Gbt_0.append(int(y))
+
+    PhaseArray_Gbt_1 = vfatPhases_gbt_1
+    for xx , yy in WindowSpecs_Gbt_1:
+        #print('X=%d'%xx)
+        #print('Y=%d'%yy)
+        PhaseArray_Gbt_1.append(int(yy))
+
+    print(PhaseArray_Gbt_0)
+    print(PhaseArray_Gbt_1)
+    # Actually Program the Best Phases
+    # GBT 0
+    program_phase(0, 0, GBT0_Config_File, PhaseArray_Gbt_0)
+    program_phase(0, 1, GBT1_Config_File, PhaseArray_Gbt_1)
+    return
+
+def findBestWindow(statArr):
+    BestStart = -1
+    BestEnd   = -1
+    CurrStart = -1
+    CurrEnd   = -1
+    BestWindowSpecs = [-1,-1]
+
+    for phi in range(len(statArr)):
+        #print('Current Phase = ',phi,' Status = ',statArr[phi])
+        if(statArr[phi]):
+            #Check if Start of new Window
+            if(CurrStart == -1):
+                # New Window Set Bounds to Current phase
+                CurrStart = phi
+                CurrEnd = phi
+            else:
+                # Continuing Window Set End to Current phase
+                CurrEnd = phi
+        else:   # Window Has ended
+            if((BestStart == -1) & (CurrStart != -1)):    # No Best Window Has been Set yet
+                BestStart = CurrStart
+                BestEnd   = CurrEnd
+            elif((BestEnd-BestStart)<(CurrEnd-CurrStart)): # Better Window has been detected
+                BestStart = CurrStart
+                BestEnd   = CurrEnd
+            CurrStart = -1
+            CurrEnd = -1
+
+    # Checks if no "Bad" phases were detected, sets Best window as full range
+    if(CurrEnd!=-1 and CurrStart !=-1):
+        if((BestEnd-BestStart)<(CurrEnd-CurrStart)):
+            BestStart = CurrStart
+            BestEnd   = CurrEnd
+
+    if((BestStart == -1) & (CurrStart != -1)):
+        BestStart = CurrStart
+        BestEnd = CurrEnd
+
+    BestWidth = (BestEnd - BestStart) + 1
+    CenterWindow = math.ceil((BestStart + BestEnd)/2)
+    print('Best Window: Width = ',BestWidth,' Center = ', CenterWindow)
+
+    BestWindowSpecs[0] = BestWidth
+    BestWindowSpecs[1] = CenterWindow
+
+    return BestWindowSpecs
 
 def scan_fpga(ohSelect,gbtSelect,configFile):
+    PhaseResult = [[False] * 15 for x in range(len(GE21_GBT_ELINK_TO_FPGA[gbtSelect]))]
+
+    heading("Hello, I'm you GBT controller :)")
+
+    if(checkGbtReady(ohSelect,gbtSelect) == 1):
+        selectGbt(ohSelect,gbtSelect)
+    else:
+        printRed("Sorry, OH%d GBT%d link is not ready.. check the following your OH is on, the fibers are plugged in correctly, the CTP7 TX polarity is correct, and muy importante, check that your GBTX is fused with at least the minimal config.." % (ohSelect, gbtSelect))
+        return
+
+    subheading('Configuring OH%d GBT%d' % (ohSelect, gbtSelect))
+
+    if configFile[-3:] != "txt":
+        printRed("Seems like the file is not a txt file, please provide a txt file generated with the GBT programmer software")
+        return
+    if not os.path.isfile(configFile):
+        printRed("Can't find the file %s" % configFile)
+        return
+
+    timeStart = clock()
+
+    regs = downloadConfig(ohSelect, gbtSelect, configFile)
+
+    totalTime = clock() - timeStart
+    print('time took = ' + str(totalTime) + 's')
     # prep
     writeReg(getNode('GEM_AMC.GEM_TESTS.OH_LOOPBACK.CTRL.OH_SELECT'), ohSelect)
 
@@ -79,7 +320,7 @@ def scan_fpga(ohSelect,gbtSelect,configFile):
     for phase in range(0, 15):
         writeReg(getNode('GEM_AMC.GEM_SYSTEM.TESTS.GBT_LOOPBACK_EN'), 0)
 
-        # set phase on all elinks
+	# set phase on all elinks
         for elink in GE21_GBT_ELINK_TO_FPGA[gbtSelect]:
             for subReg in range(0, 3):
                 addr = GBT_ELINK_SAMPLE_PHASE_REGS[elink][subReg]
@@ -96,6 +337,7 @@ def scan_fpga(ohSelect,gbtSelect,configFile):
         sleep(5)
 
         # check all elinks for errors
+	ELINK_ITER = 0
         result = ("%d" % phase).ljust(tableColWidth)
         for elink in GE21_GBT_ELINK_TO_FPGA[gbtSelect]:
             prbsLocked = parseInt(readReg(getNode('GEM_AMC.GEM_TESTS.OH_LOOPBACK.GBT_%d.ELINK_%d.PRBS_LOCKED' % (gbtSelect, elink))))
@@ -112,12 +354,17 @@ def scan_fpga(ohSelect,gbtSelect,configFile):
 
             if DEBUG:
                 print color + 'Phase = %d, ELINK %d: PRBS_LOCKED=%d, MEGA_WORD_CNT=%d, ERROR_CNT=%d' % (phase, elink, prbsLocked, megaWordCnt, errorCnt) + Colors.ENDC
-
+            if errorCnt == 0:
+                PhaseResult[ELINK_ITER][phase] = True
+	    ELINK_ITER += 1
         print(result)
 
     writeReg(getNode('GEM_AMC.GEM_SYSTEM.TESTS.GBT_LOOPBACK_EN'), 0)
+    return PhaseResult
 
 def scan_vfats(ohSelect, gbtSelect, configFile):
+    PhaseResult = [[False] * 15 for x in range(len(GE21_GBT_ELINK_TO_VFAT[gbtSelect]))]
+
     heading("Hello, I'm you GBT controller :)")
 
     if(checkGbtReady(ohSelect,gbtSelect) == 1):
@@ -176,9 +423,12 @@ def scan_vfats(ohSelect, gbtSelect, configFile):
             if (linkGood == 0) or (syncErrCnt > 0) or (cfgRunGood == 0):
                 color = Colors.RED
                 prefix = '>>>>>>>> BAD <<<<<<<< '
+            else:
+                PhaseResult[elink][phase] = True
             print color, prefix, 'Phase = %d, VFAT%d LINK_GOOD=%d, SYNC_ERR_CNT=%d, CFG_RUN_GOOD=%d' % (phase, vfat, linkGood, syncErrCnt, cfgRunGood), Colors.ENDC
 
     # End of Phase Scanning
+    return PhaseResult
 
 def downloadConfig(ohIdx, gbtIdx, filename):
     f = open(filename, 'r')

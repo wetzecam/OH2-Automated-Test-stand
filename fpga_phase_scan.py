@@ -45,6 +45,7 @@ GE21_GBT_ELINK_TO_FPGA = [GE21_GBT0_ELINK_TO_FPGA, GE21_GBT1_ELINK_TO_FPGA]
 GBT_ELINK_SAMPLE_PHASE_REGS = [[69, 73, 77], [67, 71, 75], [93, 97, 101], [91, 95, 99], [117, 121, 125], [115, 119, 123], [141, 145, 149], [139, 143, 147], [165, 169, 173], [163, 167, 171], [189, 193, 197], [187, 191, 195], [213, 217, 221], [211, 215, 219]]
 
 PHASE_SCAN_NUM_SLOW_CONTROL_READS = 10000
+PHASE_SCAN_FPGA_ACCUM_TIME = 10 # [ s ]
 
 GBT0_Config_File = "gbt_config/GBTX_GE21_OHv2_GBT_0_minimal_2020-01-17.txt"
 GBT1_Config_File = "gbt_config/GBTX_GE21_OHv2_GBT_1_minimal_2020-01-31.txt"
@@ -205,6 +206,54 @@ def program_phase_fpga(Gbt_0_Phase, Gbt_1_Phase):
     return
 
 def findBestWindow(statArr):
+    BestStart = -1
+    BestEnd   = -1
+    CurrStart = -1
+    CurrEnd   = -1
+    BestWindowSpecs = [-1,-1]
+
+    for phi in range(len(statArr)):
+        print('Current Phase = ',phi,' Status = ',statArr[phi])
+        if(statArr[phi]):
+            #Check if Start of new Window
+            if(CurrStart == -1):
+                # New Window Set Bounds to Current phase
+                CurrStart = phi
+                CurrEnd = phi
+            else:
+                # Continuing Window Set End to Current phase
+                CurrEnd = phi
+        else:   # Window Has ended
+            if((BestStart == -1) & (CurrStart != -1)):    # No Best Window Has been Set yet
+                BestStart = CurrStart
+                BestEnd   = CurrEnd
+            elif((BestEnd-BestStart)<(CurrEnd-CurrStart)): # Better Window has been detected
+                BestStart = CurrStart
+                BestEnd   = CurrEnd
+            CurrStart = -1
+            CurrEnd = -1
+
+    # Checks if no "Bad" phases were detected, sets Best window as full range
+    if(CurrEnd!=-1 and CurrStart !=-1):
+        if((BestEnd-BestStart)<(CurrEnd-CurrStart)):
+            BestStart = CurrStart
+            BestEnd   = CurrEnd
+
+    if((BestStart == -1) & (CurrStart != -1)):
+        BestStart = CurrStart
+        BestEnd = CurrEnd
+
+    BestWidth = (BestEnd - BestStart) + 1
+    CenterWindow = math.ceil((BestStart + BestEnd)/2)
+    print('Best Window: Width = ',BestWidth,' Center = ', CenterWindow)
+
+    BestWindowSpecs[0] = BestWidth
+    BestWindowSpecs[1] = CenterWindow
+
+    return BestWindowSpecs
+## =======================================
+## ========= TO BE REMOVED ===============
+def FindBestWindow(statArr):
     BestStart = -1;
     BestEnd   = -1;
     CurrStart = -1;
@@ -302,10 +351,10 @@ def scan_fpga(ohSelect,gbtSelect,configFile):
         sleep(0.001)
         writeReg(getNode('GEM_AMC.GEM_TESTS.OH_LOOPBACK.CTRL.RESET'), 1)
         writeReg(getNode('GEM_AMC.GEM_SYSTEM.TESTS.GBT_LOOPBACK_EN'), 1)
-        sleep(5)
+        sleep(PHASE_SCAN_FPGA_ACCUM_TIME)
 
         # check all elinks for errors
-	ELINK_ITER = 0
+        ELINK_ITER = 0
         result = ("%d" % phase).ljust(tableColWidth)
         for elink in GE21_GBT_ELINK_TO_FPGA[gbtSelect]:
             prbsLocked = parseInt(readReg(getNode('GEM_AMC.GEM_TESTS.OH_LOOPBACK.GBT_%d.ELINK_%d.PRBS_LOCKED' % (gbtSelect, elink))))

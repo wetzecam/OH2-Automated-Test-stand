@@ -3,6 +3,7 @@
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 PURPLE='\033[0;35m'
+GREEN='\033[32m'
 NC='\033[0m'
 args=("$@")
 argnum=("$#")
@@ -65,10 +66,16 @@ echo "Begin RiceOH2_testManual Section 11.3: Testing of VTTX optical links with 
 ./ohManual_sect_11.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
+echo "Begin RiceOH2_testManual Section 13: Checking ADC Readings"
+./ohManual_sect_13.sh ${OH_TEST_LOGFILE} >> ${OH_TEST_LOGFILE}
+queryContinue
+
 echo "Begin RiceOH2_testManual Section 14: Integrated Test of Internal Links"
 ./ohManual_sect_14.sh >> ${OH_TEST_LOGFILE}
 queryContinue
 
 echo "Begin RiceOH2_testManual Section 15: Integrated Test of VFAT Interface"
-./ohManual_sect_15.sh | tee -a ${OH_TEST_LOGFILE}
+./ohManual_sect_15.sh >> ${OH_TEST_LOGFILE}
 queryContinue
+
+echo -e "${GREEN}=========ALL TESTS PASSED========="
